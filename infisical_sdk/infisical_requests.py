@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, Optional, TypeVar
 from urllib.parse import urljoin
 import requests
-from pydantic import BaseModel, ConfigDict, TypeAdapter
+from dataclasses import dataclass
 
 T = TypeVar("T")
 
@@ -19,13 +19,29 @@ class APIError(InfisicalError):
         super().__init__(f"{message} (Status: {status_code})")
 
 
-class APIResponse(BaseModel, Generic[T]):
+@dataclass
+class APIResponse(Generic[T]):
     """Generic API response wrapper"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     data: T
     status_code: int
     headers: Dict[str, str]
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary with camelCase keys"""
+        return {
+            'data': self.data.to_dict() if hasattr(self.data, 'to_dict') else self.data,
+            'statusCode': self.status_code,
+            'headers': self.headers
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'APIResponse[T]':
+        """Create from dictionary with camelCase keys"""
+        return cls(
+            data=data['data'],
+            status_code=data['statusCode'],
+            headers=data['headers']
+        )
 
 
 class InfisicalRequests:
@@ -83,15 +99,13 @@ class InfisicalRequests:
 
         Args:
             path: API endpoint path
-            model: Pydantic model class to parse response into
+            model: model class to parse response into
             params: Optional query parameters
         """
         response = self.session.get(self._build_url(path), params=params)
         data = self._handle_response(response)
 
-        # Parse response data into model
-        type_adapter = TypeAdapter(model)
-        parsed_data = type_adapter.validate_python(data)
+        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
 
         return APIResponse(
             data=parsed_data,
@@ -115,8 +129,7 @@ class InfisicalRequests:
         response = self.session.post(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        type_adapter = TypeAdapter(model)
-        parsed_data = type_adapter.validate_python(data)
+        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
 
         return APIResponse(
             data=parsed_data,
@@ -140,8 +153,7 @@ class InfisicalRequests:
         response = self.session.patch(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        type_adapter = TypeAdapter(model)
-        parsed_data = type_adapter.validate_python(data)
+        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
 
         return APIResponse(
             data=parsed_data,
@@ -165,8 +177,7 @@ class InfisicalRequests:
         response = self.session.delete(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        type_adapter = TypeAdapter(model)
-        parsed_data = type_adapter.validate_python(data)
+        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
 
         return APIResponse(
             data=parsed_data,

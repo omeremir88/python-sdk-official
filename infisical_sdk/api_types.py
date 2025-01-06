@@ -1,6 +1,7 @@
-from typing import Optional, List, Any
-from pydantic import BaseModel, Field, ConfigDict
+from dataclasses import dataclass, field
+from typing import Optional, List, Any, Dict
 from enum import Enum
+import json
 
 
 class ApprovalStatus(str, Enum):
@@ -10,115 +11,131 @@ class ApprovalStatus(str, Enum):
     REJECTED = "rejected"
 
 
+def to_camel(string: str) -> str:
+    """Convert snake_case to camelCase"""
+    components = string.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+
+def from_camel(string: str) -> str:
+    """Convert camelCase to snake_case"""
+    result = [string[0].lower()]
+    for char in string[1:]:
+        if char.isupper():
+            result.extend(['_', char.lower()])
+        else:
+            result.append(char)
+    return ''.join(result)
+
+
+class BaseModel:
+    """Base class for all models"""
+    def to_dict(self) -> Dict:
+        """Convert model to dictionary"""
+        result = {}
+        for key, value in self.__dict__.items():
+            if value is not None:  # Skip None values
+                if isinstance(value, BaseModel):
+                    result[key] = value.to_dict()
+                elif isinstance(value, list):
+                    result[key] = [
+                        item.to_dict() if isinstance(item, BaseModel) else item
+                        for item in value
+                    ]
+                elif isinstance(value, Enum):
+                    result[key] = value.value
+                else:
+                    result[key] = value
+        return result
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'BaseModel':
+        """Create model from dictionary"""
+        return cls(**data)
+
+    def to_json(self) -> str:
+        """Convert model to JSON string"""
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, json_str: str) -> 'BaseModel':
+        """Create model from JSON string"""
+        data = json.loads(json_str)
+        return cls.from_dict(data)
+
+
+@dataclass(frozen=True)
 class SecretTag(BaseModel):
     """Model for secret tags"""
-    model_config = ConfigDict(
-        strict=True,
-        frozen=True
-    )
-
     id: str
     slug: str
     name: str
     color: Optional[str] = None
 
 
+@dataclass
 class BaseSecret(BaseModel):
     """Infisical Secret"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True
-    )
-
     id: str
     _id: str
     workspace: str
     environment: str
     version: int
     type: str
-    secret_key: str = Field(alias="secretKey")
-    secret_value: str = Field(alias="secretValue")
-    secret_comment: str = Field(alias="secretComment")
-    secret_reminder_note: Optional[str] = Field(None, alias="secretReminderNote")
-    secret_reminder_repeat_days: Optional[int] = Field(None, alias="secretReminderRepeatDays")
-    skip_multiline_encoding: Optional[bool] = Field(False, alias="skipMultilineEncoding")
+    secretKey: str
+    secretValue: str
+    secretComment: str
+    createdAt: str
+    updatedAt: str
+    secretReminderNote: Optional[str] = None
+    secretReminderRepeatDays: Optional[int] = None
+    skipMultilineEncoding: Optional[bool] = False
     metadata: Optional[Any] = None
-    created_at: str = Field(alias="createdAt")
-    updated_at: str = Field(alias="updatedAt")
+    secretPath: Optional[str] = None
+    tags: List[SecretTag] = field(default_factory=list)
 
 
+@dataclass
 class Import(BaseModel):
     """Model for imports section"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True
-    )
-
-    secret_path: str = Field(alias="secretPath")
+    secretPath: str
     environment: str
-    folder_id: Optional[str] = Field(None, alias="folderId")
-    secrets: List[BaseSecret]
+    folderId: Optional[str] = None
+    secrets: List[BaseSecret] = field(default_factory=list)
 
 
+@dataclass
 class ListSecretsResponse(BaseModel):
     """Complete response model for secrets API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
     secrets: List[BaseSecret]
-    imports: List[Import] = Field(default_factory=list)
+    imports: List[Import] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'ListSecretsResponse':
+        """Create model from dictionary with camelCase keys, handling nested objects"""
+        return cls(
+            secrets=[BaseSecret.from_dict(secret) for secret in data['secrets']],
+            imports=[Import.from_dict(imp) for imp in data.get('imports', [])]
+        )
 
 
-class GetSecretResponse(BaseModel):
+@dataclass
+class SingleSecretResponse(BaseModel):
     """Response model for get secret API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
     secret: BaseSecret
 
-
-class CreateSecretResponse(BaseModel):
-    """Response model for create secret API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
-    secret: BaseSecret
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'ListSecretsResponse':
+        """Create model from dictionary with camelCase keys, handling nested objects"""
+        return cls(
+            secret=BaseSecret.from_dict(data['secret']),
+        )
 
 
-class UpdateSecretResponse(BaseModel):
-    """Response model for update secret API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
-    secret: BaseSecret
-
-
-class DeleteSecretResponse(BaseModel):
-    """Response model for delete secret API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
-    secret: BaseSecret
-
-
+@dataclass
 class MachineIdentityLoginResponse(BaseModel):
     """Response model for machine identity login API"""
-    model_config = ConfigDict(
-        strict=True,
-        populate_by_name=True,
-    )
-
-    access_token: str = Field(alias="accessToken")
-    expires_in: int = Field(alias="expiresIn")
-    access_token_max_ttl: int = Field(alias="accessTokenMaxTTL")
-    token_type: str = Field(alias="tokenType")
+    accessToken: str
+    expiresIn: int
+    accessTokenMaxTtl: int
+    tokenType: str

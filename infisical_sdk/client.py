@@ -12,9 +12,8 @@ from botocore.awsrequest import AWSRequest
 from botocore.exceptions import NoCredentialsError
 
 from .infisical_requests import InfisicalRequests
-from .api_types import ListSecretsResponse, CreateSecretResponse, UpdateSecretResponse
-from .api_types import DeleteSecretResponse, MachineIdentityLoginResponse
-from .api_types import GetSecretResponse, BaseSecret
+from .api_types import ListSecretsResponse, MachineIdentityLoginResponse
+from .api_types import SingleSecretResponse, BaseSecret
 
 
 class InfisicalSDKClient:
@@ -236,7 +235,7 @@ class V3RawSecrets:
             secret_path: str,
             expand_secret_references: bool = True,
             include_imports: bool = True,
-            version: str = None) -> GetSecretResponse:
+            version: str = None) -> BaseSecret:
 
         params = {
           "workspaceId": project_id,
@@ -250,7 +249,7 @@ class V3RawSecrets:
         result = self.client.api.get(
             path=f"/api/v3/secrets/raw/{secret_name}",
             params=params,
-            model=GetSecretResponse
+            model=SingleSecretResponse
         )
 
         return result.data.secret
@@ -265,7 +264,7 @@ class V3RawSecrets:
             secret_comment: str = None,
             skip_multiline_encoding: bool = False,
             secret_reminder_repeat_days: Union[float, int] = None,
-            secret_reminder_note: str = None) -> GetSecretResponse:
+            secret_reminder_note: str = None) -> BaseSecret:
 
         requestBody = {
           "workspaceId": project_id,
@@ -282,8 +281,9 @@ class V3RawSecrets:
         result = self.client.api.post(
             path=f"/api/v3/secrets/raw/{secret_name}",
             json=requestBody,
-            model=CreateSecretResponse
+            model=SingleSecretResponse
         )
+
         return result.data.secret
 
     def update_secret_by_name(
@@ -316,7 +316,7 @@ class V3RawSecrets:
         result = self.client.api.patch(
             path=f"/api/v3/secrets/raw/{current_secret_name}",
             json=requestBody,
-            model=UpdateSecretResponse
+            model=SingleSecretResponse
         )
         return result.data.secret
 
@@ -337,7 +337,7 @@ class V3RawSecrets:
         result = self.client.api.delete(
             path=f"/api/v3/secrets/raw/{secret_name}",
             json=requestBody,
-            model=DeleteSecretResponse
+            model=SingleSecretResponse
         )
 
         return result.data.secret
