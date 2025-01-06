@@ -107,6 +107,11 @@ class InfisicalRequests:
           ) -> APIResponse[T]:
 
         """Make a POST request with JSON data"""
+
+        if json is not None:
+            # Filter out None values
+            json = {k: v for k, v in json.items() if v is not None}
+
         response = self.session.post(self._build_url(path), json=json)
         data = self._handle_response(response)
 
@@ -127,6 +132,11 @@ class InfisicalRequests:
           ) -> APIResponse[T]:
 
         """Make a PATCH request with JSON data"""
+
+        if json is not None:
+            # Filter out None values
+            json = {k: v for k, v in json.items() if v is not None}
+
         response = self.session.patch(self._build_url(path), json=json)
         data = self._handle_response(response)
 
@@ -139,9 +149,20 @@ class InfisicalRequests:
             headers=dict(response.headers)
         )
 
-    def delete(self, path: str, model: type[T]) -> APIResponse[T]:
-        """Make a DELETE request"""
-        response = self.session.delete(self._build_url(path))
+    def delete(
+            self,
+            path: str,
+            model: type[T],
+            json: Optional[Dict[str, Any]] = None
+          ) -> APIResponse[T]:
+
+        """Make a PATCH request with JSON data"""
+
+        if json is not None:
+            # Filter out None values
+            json = {k: v for k, v in json.items() if v is not None}
+
+        response = self.session.delete(self._build_url(path), json=json)
         data = self._handle_response(response)
 
         type_adapter = TypeAdapter(model)
