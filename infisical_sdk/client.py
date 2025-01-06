@@ -13,6 +13,8 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.exceptions import NoCredentialsError
 
+from .infisical_requests import InfisicalRequests
+from .api_types import SecretsResponse
 
 import infisicalapi_client 
 from infisicalapi_client.models.api_v1_auth_aws_auth_login_post_request import ApiV1AuthAwsAuthLoginPostRequest
@@ -35,6 +37,10 @@ class InfisicalSDKClient:
         self._api_client = infisicalapi_client.ApiClient(self._api_config)
         self._api_instance = infisicalapi_client.DefaultApi(self._api_client)
         self.rest = self._api_instance
+
+        self.api = InfisicalRequests(host=host, token=token)
+
+
 
         self.auth = Auth(self)
         self.secrets = V3RawSecrets(self)
@@ -185,15 +191,20 @@ class V3RawSecrets:
         self.client = client
 
     def list_secrets(self, project_id: str, environment_slug: str, secret_path: str, expand_secret_references: bool = True, recursive: bool = False, include_imports : bool = True, tag_filters: List[str] = []) -> ApiV3SecretsRawGet200Response:
-        return self.client._api_instance.api_v3_secrets_raw_get(
-            workspace_id=project_id, 
-            environment=environment_slug, 
-            secret_path=secret_path, 
-            expand_secret_references=str(expand_secret_references).lower(), 
-            recursive=str(recursive).lower(), 
-            tag_slugs=",".join(tag_filters), 
-            include_imports=str(include_imports).lower())
+      params = {
+          "workspace_id": project_id,
+          "environment": environment_slug,
+          "secret_path": secret_path,
+          "expand_secret_references": str(expand_secret_references).lower(),
+          "recursive": str(recursive).lower(),
+          "include_imports": str(include_imports).lower(),
+      } 
+      if tag_filters:
+          params["tag_slugs"] = ",".join(tag_filters)
 
+      result = self.client.api.get("/api/v3/secrets/raw", params=params, model=SecretsResponse)
+      return result.data
+    
     def create_secret_by_name(self, secret_name: str, project_id: str, secret_path: str, environment_slug: str, secret_value: str = None, secret_comment: str = None, skip_multiline_encoding: bool = False, secret_reminder_repeat_days: Union[float, int] = None, secret_reminder_note: str = None) -> ApiV3SecretsRawSecretNamePost200Response:
         secret_request = ApiV3SecretsRawSecretNamePostRequest(
             workspaceId = project_id,
