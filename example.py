@@ -1,5 +1,4 @@
 from infisical_sdk import InfisicalSDKClient
-from infisicalapi_client.models.api_v3_secrets_raw_get200_response_secrets_inner import ApiV3SecretsRawGet200ResponseSecretsInner
 
 sdkInstance = InfisicalSDKClient(host="https://app.infisical.com")
 
