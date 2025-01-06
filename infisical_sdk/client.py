@@ -14,6 +14,7 @@ from botocore.exceptions import NoCredentialsError
 from .infisical_requests import InfisicalRequests
 from .api_types import ListSecretsResponse, CreateSecretResponse, UpdateSecretResponse
 from .api_types import DeleteSecretResponse, MachineIdentityLoginResponse
+from .api_types import GetSecretResponse, BaseSecret
 
 
 class InfisicalSDKClient:
@@ -226,6 +227,35 @@ class V3RawSecrets:
         )
 
         return result.data
+    
+    def get_secret_by_name(
+            self,
+            secret_name: str,
+            project_id: str,
+            secret_path: str,
+            environment_slug: str,
+            version: int = None,
+            type: str = "shared",
+            expand_secret_references: bool = True,
+            include_imports: bool = True,
+          ) -> BaseSecret:
+
+        params = {
+            "workspaceId": project_id,
+            "environment": environment_slug,
+            "secretPath": secret_path,
+            "expandSecretReferences": str(expand_secret_references).lower(),
+            "include_imports": str(include_imports).lower(),
+            "version": version,
+        }
+
+        result = self.client.api.get(
+            path=f"/api/v3/secrets/raw/{secret_name}",
+            params=params,
+            model=GetSecretResponse
+        )
+
+        return result.data.secret
 
     def create_secret_by_name(
             self,
@@ -237,7 +267,7 @@ class V3RawSecrets:
             secret_comment: str = None,
             skip_multiline_encoding: bool = False,
             secret_reminder_repeat_days: Union[float, int] = None,
-            secret_reminder_note: str = None) -> CreateSecretResponse:
+            secret_reminder_note: str = None) -> GetSecretResponse:
 
         requestBody = {
           "workspaceId": project_id,
@@ -256,7 +286,7 @@ class V3RawSecrets:
             json=requestBody,
             model=CreateSecretResponse
         )
-        return result.data
+        return result.data.secret
 
     def update_secret_by_name(
             self,
@@ -269,7 +299,7 @@ class V3RawSecrets:
             skip_multiline_encoding: bool = False,
             secret_reminder_repeat_days: Union[float, int] = None,
             secret_reminder_note: str = None,
-            new_secret_name: str = None) -> UpdateSecretResponse:
+            new_secret_name: str = None) -> BaseSecret:
 
         requestBody = {
           "workspaceId": project_id,
@@ -288,16 +318,16 @@ class V3RawSecrets:
         result = self.client.api.patch(
             path=f"/api/v3/secrets/raw/{current_secret_name}",
             json=requestBody,
-            model=CreateSecretResponse
+            model=UpdateSecretResponse
         )
-        return result.data
+        return result.data.secret
 
     def delete_secret_by_name(
             self,
             secret_name: str,
             project_id: str,
             secret_path: str,
-            environment_slug: str) -> DeleteSecretResponse:
+            environment_slug: str) -> BaseSecret:
 
         requestBody = {
           "workspaceId": project_id,
@@ -309,7 +339,7 @@ class V3RawSecrets:
         result = self.client.api.delete(
             path=f"/api/v3/secrets/raw/{secret_name}",
             json=requestBody,
-            model=CreateSecretResponse
+            model=DeleteSecretResponse
         )
 
-        return result.data
+        return result.data.secret

@@ -71,6 +71,16 @@ class ListSecretsResponse(BaseModel):
     imports: List[Import] = Field(default_factory=list)
 
 
+class GetSecretResponse(BaseModel):
+    """Response model for get secret API"""
+    model_config = ConfigDict(
+        strict=True,
+        populate_by_name=True,
+    )
+
+    secret: BaseSecret
+
+
 class CreateSecretResponse(BaseModel):
     """Response model for create secret API"""
     model_config = ConfigDict(
