@@ -11,23 +11,6 @@ class ApprovalStatus(str, Enum):
     REJECTED = "rejected"
 
 
-def to_camel(string: str) -> str:
-    """Convert snake_case to camelCase"""
-    components = string.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
-
-
-def from_camel(string: str) -> str:
-    """Convert camelCase to snake_case"""
-    result = [string[0].lower()]
-    for char in string[1:]:
-        if char.isupper():
-            result.extend(['_', char.lower()])
-        else:
-            result.append(char)
-    return ''.join(result)
-
-
 class BaseModel:
     """Base class for all models"""
     def to_dict(self) -> Dict:
