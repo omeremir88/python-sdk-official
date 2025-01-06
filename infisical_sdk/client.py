@@ -2,8 +2,6 @@ import base64
 import json
 from typing import List, Union
 import os
-import json
-import base64
 import datetime
 from typing import Dict, Any
 
@@ -14,33 +12,17 @@ from botocore.awsrequest import AWSRequest
 from botocore.exceptions import NoCredentialsError
 
 from .infisical_requests import InfisicalRequests
-from .api_types import SecretsResponse
+from .api_types import ListSecretsResponse, CreateSecretResponse, UpdateSecretResponse
+from .api_types import DeleteSecretResponse, MachineIdentityLoginResponse
 
-import infisicalapi_client 
-from infisicalapi_client.models.api_v1_auth_aws_auth_login_post_request import ApiV1AuthAwsAuthLoginPostRequest
-from infisicalapi_client.models.api_v1_auth_token_auth_identities_identity_id_tokens_post200_response import ApiV1AuthTokenAuthIdentitiesIdentityIdTokensPost200Response
-from infisicalapi_client.models.api_v1_auth_universal_auth_login_post_request import ApiV1AuthUniversalAuthLoginPostRequest
-from infisicalapi_client.models.api_v3_secrets_raw_get200_response import ApiV3SecretsRawGet200Response
-from infisicalapi_client.models.api_v3_secrets_raw_secret_name_delete_request import ApiV3SecretsRawSecretNameDeleteRequest
-from infisicalapi_client.models.api_v3_secrets_raw_secret_name_get200_response import ApiV3SecretsRawSecretNameGet200Response
-from infisicalapi_client.models.api_v3_secrets_raw_secret_name_patch_request import ApiV3SecretsRawSecretNamePatchRequest
-from infisicalapi_client.models.api_v3_secrets_raw_secret_name_post200_response import ApiV3SecretsRawSecretNamePost200Response
-from infisicalapi_client.models.api_v3_secrets_raw_secret_name_post_request import ApiV3SecretsRawSecretNamePostRequest
 
 class InfisicalSDKClient:
-    def __init__(self, host: str, token: str  = None):
+    def __init__(self, host: str, token: str = None):
         self.host = host
         self.token_type = None
         self.expires_in = None
 
-        self._api_config = infisicalapi_client.Configuration(host=host, access_token=token)
-        self._api_client = infisicalapi_client.ApiClient(self._api_config)
-        self._api_instance = infisicalapi_client.DefaultApi(self._api_client)
-        self.rest = self._api_instance
-
         self.api = InfisicalRequests(host=host, token=token)
-
-
 
         self.auth = Auth(self)
         self.secrets = V3RawSecrets(self)
@@ -62,7 +44,7 @@ class UniversalAuth:
     def __init__(self, client: InfisicalSDKClient):
         self.client = client
 
-    def login(self, client_id: str, client_secret: str) -> ApiV1AuthTokenAuthIdentitiesIdentityIdTokensPost200Response:
+    def login(self, client_id: str, client_secret: str) -> MachineIdentityLoginResponse:
         """
         Login with Universal Auth.
 
@@ -74,23 +56,27 @@ class UniversalAuth:
             Dict: A dictionary containing the access token and related information.
         """
 
-        response = self.client._api_instance.api_v1_auth_universal_auth_login_post(ApiV1AuthUniversalAuthLoginPostRequest(
-            client_id = client_id,
-            client_secret = client_secret
-        ))
+        requestBody = {
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
 
-        self.client.set_token(response.access_token)
+        result = self.client.api.post(
+          path="/api/v1/auth/universal-auth/login",
+          json=requestBody,
+          model=MachineIdentityLoginResponse
+        )
 
-        return response
-    
+        return result.data
+
 
 class AWSAuth:
     def __init__(self, client: InfisicalSDKClient) -> None:
         self.client = client
 
-    def login(self, identity_id: str) -> ApiV1AuthTokenAuthIdentitiesIdentityIdTokensPost200Response:
+    def login(self, identity_id: str) -> MachineIdentityLoginResponse:
         """
-        Login with AWS Authentication. 
+        Login with AWS Authentication.
 
         Args:
             identity_id (str): Your Machine Identity ID that has AWS Auth configured.
@@ -101,7 +87,10 @@ class AWSAuth:
 
         identity_id = identity_id or os.getenv("INFISICAL_AWS_IAM_AUTH_IDENTITY_ID")
         if not identity_id:
-            raise ValueError("Identity ID must be provided or set in the environment variable INFISICAL_AWS_IAM_AUTH_IDENTITY_ID.")
+            raise ValueError(
+              "Identity ID must be provided or set in the environment variable" +
+              "INFISICAL_AWS_IAM_AUTH_IDENTITY_ID."
+            )
 
         aws_region = self.get_aws_region()
         session = boto3.Session(region_name=aws_region)
@@ -110,19 +99,30 @@ class AWSAuth:
 
         iam_request_url = f"https://sts.{aws_region}.amazonaws.com/"
         iam_request_body = "Action=GetCallerIdentity&Version=2011-06-15"
-        request_headers = self._prepare_aws_request(iam_request_url, iam_request_body, credentials, aws_region)
 
-        login_request = ApiV1AuthAwsAuthLoginPostRequest(
-            identityId=identity_id,
-            iamRequestBody=base64.b64encode(iam_request_body.encode()).decode(),
-            iamRequestHeaders=base64.b64encode(json.dumps(request_headers).encode()).decode(),
-            iamHttpRequestMethod="POST"
+        request_headers = self._prepare_aws_request(
+          iam_request_url,
+          iam_request_body,
+          credentials,
+          aws_region
         )
 
-        response = self.client._api_instance.api_v1_auth_aws_auth_login_post(login_request)
-        self.client.set_token(response.access_token)
+        requestBody = {
+          "identityId": identity_id,
+          "iamRequestBody": base64.b64encode(iam_request_body.encode()).decode(),
+          "iamRequestHeaders": base64.b64encode(json.dumps(request_headers).encode()).decode(),
+          "iamHttpRequestMethod": "POST"
+        }
 
-        return response
+        result = self.client.api.post(
+          path="/api/v1/auth/aws-auth/login",
+          json=requestBody,
+          model=MachineIdentityLoginResponse
+        )
+
+        self.client.set_token(result.data.access_token)
+
+        return result.data
 
     def _get_aws_credentials(self, session: boto3.Session) -> Any:
         try:
@@ -133,10 +133,16 @@ class AWSAuth:
         except NoCredentialsError as e:
             raise RuntimeError(f"AWS IAM Auth Login failed: {str(e)}")
 
-    def _prepare_aws_request(self, url: str, body: str, credentials: Any, region: str) -> Dict[str, str]:
+    def _prepare_aws_request(
+      self,
+      url: str,
+      body: str,
+      credentials: Any,
+      region: str) -> Dict[str, str]:
+
         current_time = datetime.datetime.now(datetime.timezone.utc)
         amz_date = current_time.strftime('%Y%m%dT%H%M%SZ')
-        
+
         request = AWSRequest(method="POST", url=url, data=body)
         request.headers["X-Amz-Date"] = amz_date
         request.headers["Host"] = f"sts.{region}.amazonaws.com"
@@ -145,12 +151,12 @@ class AWSAuth:
 
         signer = SigV4Auth(credentials, "sts", region)
         signer.add_auth(request)
-        
+
         return {k: v for k, v in request.headers.items() if k.lower() != "content-length"}
 
     @staticmethod
     def get_aws_region() -> str:
-        region = os.getenv("AWS_REGION") # Typically found in lambda runtime environment
+        region = os.getenv("AWS_REGION")  # Typically found in lambda runtime environment
         if region:
             return region
 
@@ -186,77 +192,124 @@ class Auth:
         self.aws_auth = AWSAuth(client)
         self.universal_auth = UniversalAuth(client)
 
+
 class V3RawSecrets:
     def __init__(self, client: InfisicalSDKClient) -> None:
         self.client = client
 
-    def list_secrets(self, project_id: str, environment_slug: str, secret_path: str, expand_secret_references: bool = True, recursive: bool = False, include_imports : bool = True, tag_filters: List[str] = []) -> ApiV3SecretsRawGet200Response:
-      params = {
-          "workspace_id": project_id,
+    def list_secrets(
+            self,
+            project_id: str,
+            environment_slug: str,
+            secret_path: str,
+            expand_secret_references: bool = True,
+            recursive: bool = False,
+            include_imports: bool = True,
+            tag_filters: List[str] = []) -> ListSecretsResponse:
+
+        params = {
+            "workspaceId": project_id,
+            "environment": environment_slug,
+            "secretPath": secret_path,
+            "expandSecretReferences": str(expand_secret_references).lower(),
+            "recursive": str(recursive).lower(),
+            "include_imports": str(include_imports).lower(),
+        }
+
+        if tag_filters:
+            params["tag_slugs"] = ",".join(tag_filters)
+
+        result = self.client.api.get(
+            path="/api/v3/secrets/raw",
+            params=params,
+            model=ListSecretsResponse
+        )
+
+        return result.data
+
+    def create_secret_by_name(
+            self,
+            secret_name: str,
+            project_id: str,
+            secret_path: str,
+            environment_slug: str,
+            secret_value: str = None,
+            secret_comment: str = None,
+            skip_multiline_encoding: bool = False,
+            secret_reminder_repeat_days: Union[float, int] = None,
+            secret_reminder_note: str = None) -> CreateSecretResponse:
+
+        requestBody = {
+          "workspaceId": project_id,
           "environment": environment_slug,
-          "secret_path": secret_path,
-          "expand_secret_references": str(expand_secret_references).lower(),
-          "recursive": str(recursive).lower(),
-          "include_imports": str(include_imports).lower(),
-      } 
-      if tag_filters:
-          params["tag_slugs"] = ",".join(tag_filters)
+          "secretPath": secret_path,
+          "secretValue": secret_value,
+          "secretComment": secret_comment,
+          "tagIds": None,
+          "skipMultilineEncoding": skip_multiline_encoding,
+          "type": "shared",
+          "secretReminderRepeatDays": secret_reminder_repeat_days,
+          "secretReminderNote": secret_reminder_note
+        }
+        result = self.client.api.post(
+            path=f"/api/v3/secrets/raw/{secret_name}",
+            json=requestBody,
+            model=CreateSecretResponse
+        )
+        return result.data
 
-      result = self.client.api.get("/api/v3/secrets/raw", params=params, model=SecretsResponse)
-      return result.data
-    
-    def create_secret_by_name(self, secret_name: str, project_id: str, secret_path: str, environment_slug: str, secret_value: str = None, secret_comment: str = None, skip_multiline_encoding: bool = False, secret_reminder_repeat_days: Union[float, int] = None, secret_reminder_note: str = None) -> ApiV3SecretsRawSecretNamePost200Response:
-        secret_request = ApiV3SecretsRawSecretNamePostRequest(
-            workspaceId = project_id,
-            environment = environment_slug,
-            secretPath= secret_path,
-            secretValue = secret_value,
-            secretComment = secret_comment,
-            tagIds = None,
-            skipMultilineEncoding = skip_multiline_encoding,
-            type = "shared",
-            secretReminderRepeatDays = secret_reminder_repeat_days,
-            secretReminderNote = secret_reminder_note
+    def update_secret_by_name(
+            self,
+            current_secret_name: str,
+            project_id: str,
+            secret_path: str,
+            environment_slug: str,
+            secret_value: str = None,
+            secret_comment: str = None,
+            skip_multiline_encoding: bool = False,
+            secret_reminder_repeat_days: Union[float, int] = None,
+            secret_reminder_note: str = None,
+            new_secret_name: str = None) -> UpdateSecretResponse:
+
+        requestBody = {
+          "workspaceId": project_id,
+          "environment": environment_slug,
+          "secretPath": secret_path,
+          "secretValue": secret_value,
+          "secretComment": secret_comment,
+          "new_secret_name": new_secret_name,
+          "tagIds": None,
+          "skipMultilineEncoding": skip_multiline_encoding,
+          "type": "shared",
+          "secretReminderRepeatDays": secret_reminder_repeat_days,
+          "secretReminderNote": secret_reminder_note
+        }
+
+        result = self.client.api.patch(
+            path=f"/api/v3/secrets/raw/{current_secret_name}",
+            json=requestBody,
+            model=CreateSecretResponse
+        )
+        return result.data
+
+    def delete_secret_by_name(
+            self,
+            secret_name: str,
+            project_id: str,
+            secret_path: str,
+            environment_slug: str) -> DeleteSecretResponse:
+
+        requestBody = {
+          "workspaceId": project_id,
+          "environment": environment_slug,
+          "secretPath": secret_path,
+          "type": "shared",
+        }
+
+        result = self.client.api.delete(
+            path=f"/api/v3/secrets/raw/{secret_name}",
+            json=requestBody,
+            model=CreateSecretResponse
         )
 
-        return self.client._api_instance.api_v3_secrets_raw_secret_name_post(secret_name, secret_request)
-         
-
-    def update_secret_by_name(self, current_secret_name: str, project_id: str, secret_path: str, environment_slug: str, secret_value: str = None, secret_comment: str = None, skip_multiline_encoding: bool = False, secret_reminder_repeat_days: Union[float, int] = None, secret_reminder_note: str = None, new_secret_name: str = None) -> ApiV3SecretsRawSecretNamePost200Response:
-        secret_request = ApiV3SecretsRawSecretNamePatchRequest(
-            workspaceId = project_id,
-            environment = environment_slug,
-            secretPath= secret_path,
-            secretValue = secret_value,
-            secretComment = secret_comment,
-            new_secret_name=new_secret_name,
-            tagIds = None,
-            skipMultilineEncoding = skip_multiline_encoding,
-            type = "shared",
-            secretReminderRepeatDays = secret_reminder_repeat_days,
-            secretReminderNote = secret_reminder_note
-        )
-
-        return self.client._api_instance.api_v3_secrets_raw_secret_name_patch(current_secret_name, secret_request) 
-
-    def delete_secret_by_name(self, secret_name: str, project_id: str, secret_path: str, environment_slug: str) -> ApiV3SecretsRawSecretNamePost200Response:
-        secret_delete_request = ApiV3SecretsRawSecretNameDeleteRequest(
-            workspaceId = project_id,
-            environment = environment_slug,
-            secretPath= secret_path,
-            type = "shared",
-        )
-
-        return self.client._api_instance.api_v3_secrets_raw_secret_name_delete(secret_name, secret_delete_request)
-
-    def get_secret_by_name(self, secret_name: str, project_id: str, environment_slug: str, secret_path: str, expand_secret_references: bool = True, include_imports : bool = True, version: str = None) -> ApiV3SecretsRawSecretNameGet200Response:
-        return self.client._api_instance.api_v3_secrets_raw_secret_name_get(
-            secret_name=secret_name,
-            workspace_id=project_id, 
-            environment=environment_slug, 
-            secret_path=secret_path,
-            version=version, 
-            type="shared",
-            expand_secret_references=str(expand_secret_references).lower(), 
-            include_imports=str(include_imports).lower()
-        )
+        return result.data

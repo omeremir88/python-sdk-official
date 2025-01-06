@@ -1,1 +1,1 @@
-from .client import InfisicalSDKClient
+from .client import InfisicalSDKClient # noqa
