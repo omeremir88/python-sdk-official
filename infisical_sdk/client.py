@@ -227,26 +227,24 @@ class V3RawSecrets:
         )
 
         return result.data
-    
+
     def get_secret_by_name(
             self,
             secret_name: str,
             project_id: str,
-            secret_path: str,
             environment_slug: str,
-            version: int = None,
-            type: str = "shared",
+            secret_path: str,
             expand_secret_references: bool = True,
             include_imports: bool = True,
-          ) -> BaseSecret:
+            version: str = None) -> GetSecretResponse:
 
         params = {
-            "workspaceId": project_id,
-            "environment": environment_slug,
-            "secretPath": secret_path,
-            "expandSecretReferences": str(expand_secret_references).lower(),
-            "include_imports": str(include_imports).lower(),
-            "version": version,
+          "workspaceId": project_id,
+          "environment": environment_slug,
+          "secretPath": secret_path,
+          "expandSecretReferences": str(expand_secret_references).lower(),
+          "include_imports": str(include_imports).lower(),
+          "version": version
         }
 
         result = self.client.api.get(
