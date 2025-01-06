@@ -109,7 +109,6 @@ class SingleSecretResponse(BaseModel):
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'ListSecretsResponse':
-        """Create model from dictionary with camelCase keys, handling nested objects"""
         return cls(
             secret=BaseSecret.from_dict(data['secret']),
         )
@@ -120,5 +119,5 @@ class MachineIdentityLoginResponse(BaseModel):
     """Response model for machine identity login API"""
     accessToken: str
     expiresIn: int
-    accessTokenMaxTtl: int
+    accessTokenMaxTTL: int
     tokenType: str

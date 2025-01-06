@@ -31,7 +31,7 @@ class InfisicalSDKClient:
         """
         Set the access token for future requests.
         """
-        self._api_config.access_token = token
+        self.api.set_token(token)
 
     def get_token(self):
         """
@@ -57,8 +57,8 @@ class UniversalAuth:
         """
 
         requestBody = {
-            "client_id": client_id,
-            "client_secret": client_secret
+            "clientId": client_id,
+            "clientSecret": client_secret
         }
 
         result = self.client.api.post(
@@ -66,6 +66,8 @@ class UniversalAuth:
           json=requestBody,
           model=MachineIdentityLoginResponse
         )
+
+        self.client.set_token(result.data.accessToken)
 
         return result.data
 
@@ -120,7 +122,7 @@ class AWSAuth:
           model=MachineIdentityLoginResponse
         )
 
-        self.client.set_token(result.data.access_token)
+        self.client.set_token(result.data.accessToken)
 
         return result.data
 
