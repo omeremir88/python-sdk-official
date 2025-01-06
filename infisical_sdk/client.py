@@ -19,8 +19,7 @@ from .api_types import SingleSecretResponse, BaseSecret
 class InfisicalSDKClient:
     def __init__(self, host: str, token: str = None):
         self.host = host
-        self.token_type = None
-        self.expires_in = None
+        self.access_token = token
 
         self.api = InfisicalRequests(host=host, token=token)
 
@@ -32,12 +31,13 @@ class InfisicalSDKClient:
         Set the access token for future requests.
         """
         self.api.set_token(token)
+        self.access_token = token
 
     def get_token(self):
         """
         Set the access token for future requests.
         """
-        return self.token
+        return self.access_token
 
 
 class UniversalAuth:
