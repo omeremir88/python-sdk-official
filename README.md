@@ -2,7 +2,7 @@
 
 The Infisical SDK provides a convenient way to interact with the Infisical API. 
 
-### Migrating to stable version >= 1.0.0
+### Migrating to version 1.0.0 or above
 
 We have recently rolled out our first stable version of the SDK, version `1.0.0` and above.
 
