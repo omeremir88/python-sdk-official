@@ -11,7 +11,7 @@ The 1.0.0 version comes with a few key changes that may change how you're using 
 
 2. **New response types**: The 1.0.0 release uses return types that differ from the older versions. The new return types such as `BaseSecret`, are all exported from the Infisical SDK.
 
-3. **Property renaming**: Some properties on the responses have been slightly renamed. An example of this would be that the `secret_key` property on the `get_secret_by_name()` method, has been renamed to `secretKey`.
+3. **Property renaming**: Some properties on the responses have been slightly renamed. An example of this would be that the `secret_key` property on the `get_secret_by_name()` method, that has been renamed to `secretKey`.
 
 With this in mind, you're ready to upgrade your SDK version to `1.0.0` or above. 
 
