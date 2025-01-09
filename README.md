@@ -2,18 +2,18 @@
 
 The Infisical SDK provides a convenient way to interact with the Infisical API. 
 
-### Migrating to version 1.0.0 or above
+### Migrating to version 1.0.2 or above
 
-We have recently rolled out our first stable version of the SDK, version `1.0.0` and above.
+We have recently rolled out our first stable version of the SDK, version `1.0.2` and above.
 
-The 1.0.0 version comes with a few key changes that may change how you're using the SDK.
+The 1.0.2 version comes with a few key changes that may change how you're using the SDK.
 1. **Removal of `rest`**: The SDK no longer exposes the entire Infisical API. This was nessecary as we have moved away from using an OpenAPI generator approach. We aim to add support for more API resources in the near future. If you have any specific requests, please [open an issue](https://github.com/Infisical/python-sdk-official/issues).
 
-2. **New response types**: The 1.0.0 release uses return types that differ from the older versions. The new return types such as `BaseSecret`, are all exported from the Infisical SDK.
+2. **New response types**: The 1.0.2 release uses return types that differ from the older versions. The new return types such as `BaseSecret`, are all exported from the Infisical SDK.
 
 3. **Property renaming**: Some properties on the responses have been slightly renamed. An example of this would be that the `secret_key` property on the `get_secret_by_name()` method, that has been renamed to `secretKey`.
 
-With this in mind, you're ready to upgrade your SDK version to `1.0.0` or above. 
+With this in mind, you're ready to upgrade your SDK version to `1.0.2` or above. 
 
 You can refer to our [legacy documentation](https://github.com/Infisical/python-sdk-official/tree/9b0403938ee5ae599d42c5f1fdf9158671a15606?tab=readme-ov-file#infisical-python-sdk) if need be.
 
