@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Optional, List, Any, Dict
 from enum import Enum
 import json
@@ -34,7 +34,10 @@ class BaseModel:
     @classmethod
     def from_dict(cls, data: Dict) -> 'BaseModel':
         """Create model from dictionary"""
-        return cls(**data)
+        # Get only the fields that exist in the dataclass
+        valid_fields = {f.name for f in fields(cls)}
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+        return cls(**filtered_data)
 
     def to_json(self) -> str:
         """Convert model to JSON string"""
@@ -70,6 +73,7 @@ class BaseSecret(BaseModel):
     secretComment: str
     createdAt: str
     updatedAt: str
+    secretMetadata: Optional[Dict[str, Any]] = None
     secretReminderNote: Optional[str] = None
     secretReminderRepeatDays: Optional[int] = None
     skipMultilineEncoding: Optional[bool] = False
