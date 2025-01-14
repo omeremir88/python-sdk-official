@@ -36,10 +36,13 @@ from infisical_sdk import InfisicalSDKClient
 client = InfisicalSDKClient(host="https://app.infisical.com")
 
 # Authenticate (example using Universal Auth)
-client.auth.universal_auth.login(client_id="your_client_id", client_secret="your_client_secret")
+client.auth.universal_auth.login(
+    client_id="<machine-identity-client-id>", 
+    client_secret="<machine-identity-client-secret>"
+)
 
 # Use the SDK to interact with Infisical
-secrets = client.secrets.list_secrets(project_id="your_project_id", environment_slug="dev", secret_path="/")
+secrets = client.secrets.list_secrets(project_id="<project-id>", environment_slug="dev", secret_path="/")
 ```
 
 ## Core Methods
@@ -56,13 +59,16 @@ The `Auth` component provides methods for authentication:
 #### Universal Auth
 
 ```python
-response = client.auth.universal_auth.login(client_id="your_client_id", client_secret="your_client_secret")
+response = client.auth.universal_auth.login(
+    client_id="<machine-identity-client-id>", 
+    client_secret="<machine-identity-client-secret>"
+)
 ```
 
 #### AWS Auth
 
 ```python
-response = client.auth.aws_auth.login(identity_id="your_identity_id")
+response = client.auth.aws_auth.login(identity_id="<machine-identity-id>")
 ```
 
 ### `secrets`
@@ -73,7 +79,7 @@ This sub-class handles operations related to secrets:
 
 ```python
 secrets = client.secrets.list_secrets(
-    project_id="your_project_id",
+    project_id="<project-id>",
     environment_slug="dev",
     secret_path="/",
     expand_secret_references=True,
@@ -100,7 +106,7 @@ secrets = client.secrets.list_secrets(
 ```python
 new_secret = client.secrets.create_secret_by_name(
     secret_name="NEW_SECRET",
-    project_id="your_project_id",
+    project_id="<project-id>",
     secret_path="/",
     environment_slug="dev",
     secret_value="secret_value",
@@ -130,7 +136,7 @@ new_secret = client.secrets.create_secret_by_name(
 ```python
 updated_secret = client.secrets.update_secret_by_name(
     current_secret_name="EXISTING_SECRET",
-    project_id="your_project_id",
+    project_id="<project-id>",
     secret_path="/",
     environment_slug="dev",
     secret_value="new_secret_value",
@@ -162,7 +168,7 @@ updated_secret = client.secrets.update_secret_by_name(
 ```python
 secret = client.secrets.get_secret_by_name(
     secret_name="EXISTING_SECRET",
-    project_id="your_project_id",
+    project_id="<project-id>",
     environment_slug="dev",
     secret_path="/",
     expand_secret_references=True,
@@ -188,7 +194,7 @@ secret = client.secrets.get_secret_by_name(
 ```python
 deleted_secret = client.secrets.delete_secret_by_name(
     secret_name="EXISTING_SECRET",
-    project_id="your_project_id",
+    project_id="<project-id>",
     environment_slug="dev",
     secret_path="/"
 )
