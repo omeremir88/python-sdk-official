@@ -219,7 +219,7 @@ class V3RawSecrets:
         }
 
         if tag_filters:
-            params["tag_slugs"] = ",".join(tag_filters)
+            params["tagSlugs"] = ",".join(tag_filters)
 
         result = self.client.api.get(
             path="/api/v3/secrets/raw",
