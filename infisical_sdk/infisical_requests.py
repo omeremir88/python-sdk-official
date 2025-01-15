@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Dict, Generic, Optional, TypeVar, Type
 from urllib.parse import urljoin
 import requests
 from dataclasses import dataclass
@@ -90,7 +90,7 @@ class InfisicalRequests:
     def get(
             self,
             path: str,
-            model: type[T],
+            model: Type[T],
             params: Optional[Dict[str, Any]] = None
           ) -> APIResponse[T]:
 
@@ -116,7 +116,7 @@ class InfisicalRequests:
     def post(
             self,
             path: str,
-            model: type[T],
+            model: Type[T],
             json: Optional[Dict[str, Any]] = None
           ) -> APIResponse[T]:
 
@@ -140,7 +140,7 @@ class InfisicalRequests:
     def patch(
             self,
             path: str,
-            model: type[T],
+            model: Type[T],
             json: Optional[Dict[str, Any]] = None
           ) -> APIResponse[T]:
 
@@ -164,7 +164,7 @@ class InfisicalRequests:
     def delete(
             self,
             path: str,
-            model: type[T],
+            model: Type[T],
             json: Optional[Dict[str, Any]] = None
           ) -> APIResponse[T]:
 
