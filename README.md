@@ -1,5 +1,3 @@
-from infisical_sdk.api_types import SymmetricEncryptionfrom infisical_sdk.api_types import KmsKeysOrderBy
-
 # Infisical Python SDK
 
 The Infisical SDK provides a convenient way to interact with the Infisical API. 
@@ -328,13 +326,13 @@ deleted_key = client.kms.delete_key(
 ```python
 encrypted_data = client.kms.encrypt_data(
     key_id="<key-id>",
-    plaintext="TXkgc2VjcmV0IG1lc3NhZ2U=" # must be base64 encoded
+    base64EncodedPlaintext="TXkgc2VjcmV0IG1lc3NhZ2U=" # must be base64 encoded
 )
 ```
 
 **Parameters:**
 - `key_id` (str): The ID of the key to encrypt the data with.
-- `plaintext` (str): The plaintext data to encrypt (must be base64 encoded).
+- `base64EncodedPlaintext` (str): The plaintext data to encrypt (must be base64 encoded).
 
 **Returns:**
 - `str`: The encrypted ciphertext.

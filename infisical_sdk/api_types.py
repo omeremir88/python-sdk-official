@@ -126,16 +126,20 @@ class MachineIdentityLoginResponse(BaseModel):
     accessTokenMaxTTL: int
     tokenType: str
 
+
 class SymmetricEncryption(str, Enum):
     AES_GCM_256 = "aes-256-gcm"
     AES_GCM_128 = "aes-128-gcm"
+
 
 class OrderDirection(str, Enum):
     ASC = "asc"
     DESC = "desc"
 
+
 class KmsKeysOrderBy(str, Enum):
     NAME = "name"
+
 
 @dataclass
 class KmsKey(BaseModel):
@@ -150,6 +154,7 @@ class KmsKey(BaseModel):
     projectId: str
     version: int
     encryptionAlgorithm: SymmetricEncryption
+
 
 @dataclass
 class ListKmsKeysResponse(BaseModel):
@@ -177,10 +182,12 @@ class SingleKmsKeyResponse(BaseModel):
             key=KmsKey.from_dict(data['key']),
         )
 
+
 @dataclass
 class KmsKeyEncryptDataResponse(BaseModel):
     """Response model for encrypt data API"""
     ciphertext: str
+
 
 @dataclass
 class KmsKeyDecryptDataResponse(BaseModel):

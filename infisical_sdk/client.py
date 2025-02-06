@@ -12,9 +12,11 @@ from botocore.awsrequest import AWSRequest
 from botocore.exceptions import NoCredentialsError
 
 from .infisical_requests import InfisicalRequests
-from .api_types import ListSecretsResponse, MachineIdentityLoginResponse, ListKmsKeysResponse, SingleKmsKeyResponse, \
-    KmsKey, SymmetricEncryption, KmsKeyEncryptDataResponse, KmsKeyDecryptDataResponse, KmsKeysOrderBy, OrderDirection
-from .api_types import SingleSecretResponse, BaseSecret
+
+from .api_types import ListSecretsResponse, SingleSecretResponse, BaseSecret
+from .api_types import SymmetricEncryption, KmsKeysOrderBy, OrderDirection
+from .api_types import ListKmsKeysResponse, SingleKmsKeyResponse, MachineIdentityLoginResponse
+from .api_types import KmsKey, KmsKeyEncryptDataResponse, KmsKeyDecryptDataResponse
 
 
 class InfisicalSDKClient:
@@ -346,6 +348,7 @@ class V3RawSecrets:
 
         return result.data.secret
 
+
 class KMS:
     def __init__(self, client: InfisicalSDKClient) -> None:
         self.client = client
@@ -462,13 +465,13 @@ class KMS:
     def encrypt_data(
             self,
             key_id: str,
-            plaintext: str) -> str:
+            base64EncodedPlaintext: str) -> str:
         """
             Encrypt data with the specified KMS key.
 
             :param key_id: The ID of the key to decrypt the ciphertext with
             :type key_id: str
-            :param plaintext: The base64 encoded plaintext to encrypt
+            :param base64EncodedPlaintext: The base64 encoded plaintext to encrypt
             :type plaintext: str
 
 
@@ -477,7 +480,7 @@ class KMS:
         """
 
         request_body = {
-            "plaintext": plaintext
+            "plaintext": base64EncodedPlaintext
         }
 
         result = self.client.api.post(
@@ -508,7 +511,6 @@ class KMS:
         request_body = {
             "ciphertext": ciphertext
         }
-
 
         result = self.client.api.post(
             path=f"/api/v1/kms/keys/{key_id}/decrypt",
