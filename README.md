@@ -208,3 +208,147 @@ deleted_secret = client.secrets.delete_secret_by_name(
 
 **Returns:**
 - `BaseSecret`: The response after deleting the secret.
+
+### `kms`
+
+This sub-class handles KMS related operations:
+
+#### List KMS Keys
+
+```python
+kms_keys = client.kms.list_keys(
+    project_id="<project-id>",
+    offset=0, # Optional
+    limit=100, # Optional
+    order_by=KmsKeysOrderBy.NAME, # Optional
+    order_direction=OrderDirection.ASC, # Optional
+    search=None # Optional
+)
+```
+
+**Parameters:**
+- `project_id` (str): The ID of your project.
+- `offset` (int, optional): The offset to paginate from.
+- `limit` (int, optional): The page size for paginating.
+- `order_by` (KmsKeysOrderBy, optional): The key property to order the list response by.
+- `order_direction` (OrderDirection, optional): The direction to order the list response in.
+- `search` (str, optional): The text value to filter key names by.
+
+**Returns:**
+- `ListKmsKeysResponse`: The response containing the list of KMS keys.
+
+#### Get KMS Key by ID
+
+```python
+kms_key = client.kms.get_key_by_id(
+    key_id="<key-id>"
+)
+```
+
+**Parameters:**
+- `key_id` (str): The ID of the key to retrieve.
+
+**Returns:**
+- `KmsKey`: The specified key.
+
+#### Get KMS Key by Name
+
+```python
+kms_key = client.kms.get_key_by_name(
+    key_name="my-key",
+    project_id="<project-id>"
+)
+```
+
+**Parameters:**
+- `key_name` (str): The name of the key to retrieve.
+- `project_id` (str): The ID of your project.
+
+**Returns:**
+- `KmsKey`: The specified key.
+
+#### Create KMS Key
+
+```python
+kms_key = client.kms.create_key(
+    name="my-key",
+    project_id="<project-id>",
+    encryption_algorithm=SymmetricEncryption.AES_GCM_256,
+    description=None # Optional
+)
+```
+
+**Parameters:**
+- `name` (str): The name of the key (must be slug-friendly).
+- `project_id` (str): The ID of your project.
+- `encryption_algorithm` (SymmetricEncryption): The encryption alogrithm this key should use.
+- `description` (str, optional): A description of your key.
+
+**Returns:**
+- `KmsKey`: The newly created key.
+
+#### Update KMS Key
+
+```python
+updated_key = client.kms.update_key(
+    key_id="<key-id>",
+    name="my-updated-key", # Optional
+    description="Updated description", # Optional
+    is_disabled=True # Optional
+)
+```
+
+**Parameters:**
+- `key_id` (str): The ID of the key to be updated.
+- `name` (str, optional): The updated name of the key (must be slug-friendly).
+- `description` (str): The updated description of the key.
+- `is_disabled` (str): The flag to disable operations with this key.
+
+**Returns:**
+- `KmsKey`: The updated key.
+
+#### Delete KMS Key
+
+```python
+deleted_key = client.kms.delete_key(
+    key_id="<key-id>"
+)
+```
+
+**Parameters:**
+- `key_id` (str): The ID of the key to be deleted.
+
+**Returns:**
+- `KmsKey`: The deleted key.
+
+#### Encrypt Data with KMS Key
+
+```python
+encrypted_data = client.kms.encrypt_data(
+    key_id="<key-id>",
+    base64EncodedPlaintext="TXkgc2VjcmV0IG1lc3NhZ2U=" # must be base64 encoded
+)
+```
+
+**Parameters:**
+- `key_id` (str): The ID of the key to encrypt the data with.
+- `base64EncodedPlaintext` (str): The plaintext data to encrypt (must be base64 encoded).
+
+**Returns:**
+- `str`: The encrypted ciphertext.
+
+#### Decrypte Data with KMS Key
+
+```python
+decrypted_data = client.kms.decrypt_data(
+    key_id="<key-id>",
+    ciphertext="Aq96Ry7sMH3k/ogaIB5MiSfH+LblQRBu69lcJe0GfIvI48ZvbWY+9JulyoQYdjAx"
+)
+```
+
+**Parameters:**
+- `key_id` (str): The ID of the key to decrypt the data with.
+- `ciphertext` (str): The ciphertext returned from the encrypt operation.
+
+**Returns:**
+- `str`: The base64 encoded plaintext.

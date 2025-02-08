@@ -112,7 +112,7 @@ class SingleSecretResponse(BaseModel):
     secret: BaseSecret
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'ListSecretsResponse':
+    def from_dict(cls, data: Dict) -> 'SingleSecretResponse':
         return cls(
             secret=BaseSecret.from_dict(data['secret']),
         )
@@ -125,3 +125,71 @@ class MachineIdentityLoginResponse(BaseModel):
     expiresIn: int
     accessTokenMaxTTL: int
     tokenType: str
+
+
+class SymmetricEncryption(str, Enum):
+    AES_GCM_256 = "aes-256-gcm"
+    AES_GCM_128 = "aes-128-gcm"
+
+
+class OrderDirection(str, Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+
+class KmsKeysOrderBy(str, Enum):
+    NAME = "name"
+
+
+@dataclass
+class KmsKey(BaseModel):
+    """Infisical KMS Key"""
+    id: str
+    description: str
+    isDisabled: bool
+    orgId: str
+    name: str
+    createdAt: str
+    updatedAt: str
+    projectId: str
+    version: int
+    encryptionAlgorithm: SymmetricEncryption
+
+
+@dataclass
+class ListKmsKeysResponse(BaseModel):
+    """Complete response model for Kms Keys API"""
+    keys: List[KmsKey]
+    totalCount: int
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'ListKmsKeysResponse':
+        """Create model from dictionary with camelCase keys, handling nested objects"""
+        return cls(
+            keys=[KmsKey.from_dict(key) for key in data['keys']],
+            totalCount=data['totalCount']
+        )
+
+
+@dataclass
+class SingleKmsKeyResponse(BaseModel):
+    """Response model for get/create/update/delete API"""
+    key: KmsKey
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'SingleKmsKeyResponse':
+        return cls(
+            key=KmsKey.from_dict(data['key']),
+        )
+
+
+@dataclass
+class KmsKeyEncryptDataResponse(BaseModel):
+    """Response model for encrypt data API"""
+    ciphertext: str
+
+
+@dataclass
+class KmsKeyDecryptDataResponse(BaseModel):
+    """Response model for decrypt data API"""
+    plaintext: str

@@ -2,7 +2,7 @@ from infisical_sdk import InfisicalSDKClient
 
 sdkInstance = InfisicalSDKClient(host="https://app.infisical.com")
 
-sdkInstance.auth.universalAuth.login("<>", "<>")
+sdkInstance.auth.universal_auth.login("<>", "<>")
 
 # new_secret = sdkInstance.secrets.create_secret_by_name(
 #     secret_name="NEW_SECRET",
