@@ -74,6 +74,7 @@ class BaseSecret(BaseModel):
     createdAt: str
     updatedAt: str
     secretMetadata: Optional[Dict[str, Any]] = None
+    secretValueHidden: Optional[bool] = False
     secretReminderNote: Optional[str] = None
     secretReminderRepeatDays: Optional[int] = None
     skipMultilineEncoding: Optional[bool] = False
