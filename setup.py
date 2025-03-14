@@ -18,7 +18,6 @@ NAME = "infisicalsdk"
 VERSION = "1.0.1"
 PYTHON_REQUIRES = ">=3.8"
 REQUIRES = [
-    "urllib3 >= 1.25.3, < 2.1.0",
     "python-dateutil",
     "aenum",
     "requests~=2.32",

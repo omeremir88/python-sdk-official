@@ -1,10 +1,16 @@
 from typing import Any, Dict, Generic, Optional, TypeVar, Type
-from urllib.parse import urljoin
 import requests
 from dataclasses import dataclass
 
 T = TypeVar("T")
 
+def join_url(base: str, path: str) -> str:
+    """
+    Join base URL and path properly, handling slashes appropriately.
+    """
+    if not base.endswith('/'):
+        base += '/'
+    return base + path.lstrip('/')
 
 class InfisicalError(Exception):
     """Base exception for Infisical client errors"""
@@ -60,7 +66,7 @@ class InfisicalRequests:
 
     def _build_url(self, path: str) -> str:
         """Construct full URL from path"""
-        return urljoin(self.host, path.lstrip("/"))
+        return join_url(self.host, path.lstrip("/"))
 
     def set_token(self, token: str):
         """Set authorization token"""
