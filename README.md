@@ -82,10 +82,11 @@ secrets = client.secrets.list_secrets(
     project_id="<project-id>",
     environment_slug="dev",
     secret_path="/",
-    expand_secret_references=True,
-    recursive=False,
-    include_imports=True,
-    tag_filters=[]
+    expand_secret_references=True, # Optional
+    view_secret_value=True, # Optional 
+    recursive=False, # Optional
+    include_imports=True, # Optional
+    tag_filters=[] # Optional
 )
 ```
 
@@ -94,6 +95,7 @@ secrets = client.secrets.list_secrets(
 - `environment_slug` (str): The environment in which to list secrets (e.g., "dev").
 - `secret_path` (str): The path to the secrets.
 - `expand_secret_references` (bool): Whether to expand secret references.
+- `view_secret_value` (bool): Whether or not to include the secret value in the response. If set to false, the `secretValue` will be masked with `<hidden-by-infisical>`. Defaults to true.
 - `recursive` (bool): Whether to list secrets recursively.
 - `include_imports` (bool): Whether to include imported secrets.
 - `tag_filters` (List[str]): Tags to filter secrets.
@@ -171,9 +173,10 @@ secret = client.secrets.get_secret_by_name(
     project_id="<project-id>",
     environment_slug="dev",
     secret_path="/",
-    expand_secret_references=True,
-    include_imports=True,
-    version=None  # Optional
+    expand_secret_references=True, # Optional
+    view_secret_value=True, # Optional
+    include_imports=True, # Optional
+    version=None # Optional
 )
 ```
 
@@ -183,6 +186,7 @@ secret = client.secrets.get_secret_by_name(
 - `environment_slug` (str): The environment in which to retrieve the secret.
 - `secret_path` (str): The path to the secret.
 - `expand_secret_references` (bool): Whether to expand secret references.
+- `view_secret_value` (bool): Whether or not to include the secret value in the response. If set to false, the `secretValue` will be masked with `<hidden-by-infisical>`. Defaults to true.
 - `include_imports` (bool): Whether to include imported secrets.
 - `version` (str, optional): The version of the secret to retrieve. Fetches the latest by default.
 

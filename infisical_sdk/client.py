@@ -209,6 +209,7 @@ class V3RawSecrets:
             environment_slug: str,
             secret_path: str,
             expand_secret_references: bool = True,
+            view_secret_value: bool = True,
             recursive: bool = False,
             include_imports: bool = True,
             tag_filters: List[str] = []) -> ListSecretsResponse:
@@ -217,6 +218,7 @@ class V3RawSecrets:
             "workspaceId": project_id,
             "environment": environment_slug,
             "secretPath": secret_path,
+            "viewSecretValue": str(view_secret_value).lower(),
             "expandSecretReferences": str(expand_secret_references).lower(),
             "recursive": str(recursive).lower(),
             "include_imports": str(include_imports).lower(),
@@ -241,10 +243,12 @@ class V3RawSecrets:
             secret_path: str,
             expand_secret_references: bool = True,
             include_imports: bool = True,
+            view_secret_value: bool = True,
             version: str = None) -> BaseSecret:
 
         params = {
           "workspaceId": project_id,
+          "viewSecretValue": str(view_secret_value).lower(),
           "environment": environment_slug,
           "secretPath": secret_path,
           "expandSecretReferences": str(expand_secret_references).lower(),
