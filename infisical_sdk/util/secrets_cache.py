@@ -8,7 +8,7 @@ from hashlib import sha256
 import pickle
 
 class SecretsCache:
-    def __init__(self, ttl_seconds: int | None = 300) -> None:
+    def __init__(self, ttl_seconds: int = 300) -> None:
       if ttl_seconds is None or ttl_seconds <= 0:
           self.enabled = False
           return

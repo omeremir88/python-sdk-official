@@ -45,12 +45,29 @@ client.auth.universal_auth.login(
 secrets = client.secrets.list_secrets(project_id="<project-id>", environment_slug="dev", secret_path="/")
 ```
 
+## InfisicalSDKClient Parameters
+
+The `InfisicalSDKClient` takes the following parameters, which are used a global configuration.
+
+- **host** (`str`, _Optional_): The host URL for your Infisical instance. Defaults to `https://app.infisical.com`.
+- **token** (`str`, _Optional_): Specify a authentication token to use for all requests. If provided, you will not need to call any of the `auth` methods. Defaults to `None`
+- **cache_ttl** (`int`, _Optional_): The SDK has an inbuilt client-side cache mechanism for secrets, which greatly improves speed for the secret methods. By default secrets are cached for 5 minutes. You can disable caching by setting `cache_ttl` to `None`. The value is in seconds, so `300` equates to 5 minutes caching TTL. Default is `300` seconds.
+
+```python
+client = InfisicalSDKClient(
+  host="https://app.infisical.com", # Defaults to https://app.infisical.com
+  token="<optional-auth-token>" # If not set, use the client.auth() methods.
+  cache_ttl = 300 # `None` to disable caching
+)
+```
+
 ## Core Methods
 
 The SDK methods are organized into the following high-level categories:
 
 1. `auth`: Handles authentication methods.
 2. `secrets`: Manages CRUD operations for secrets.
+3. `kms`: Perform cryptographic operations with Infisical KMS.
 
 ### `auth`
 

@@ -24,8 +24,6 @@ def random_string(length: int = 10) -> str:
 
 
 
-
-
 ################################################# SECRET TESTS #################################################
 
 new_secret = sdkInstance.secrets.create_secret_by_name(

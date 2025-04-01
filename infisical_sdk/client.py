@@ -7,7 +7,15 @@ from infisical_sdk.resources import KMS
 from infisical_sdk.util import SecretsCache
 
 class InfisicalSDKClient:
-    def __init__(self, host: str, token: str = None, cache_ttl: int | None = 300):
+    def __init__(self, host: str, token: str = None, cache_ttl: int = 300):
+        """
+        Initialize the Infisical SDK client.
+
+        :param str host: The host URL for your Infisical instance. Will default to `https://app.infisical.com` if not specified.
+        :param str token: The authentication token for the client. If not specified, you can use the `auth` methods to authenticate.
+        :param int cache_ttl: The time to live for the secrets cache. This is the number of seconds that secrets fetched from the API will be cached for. Set to `None` to disable caching.
+        """
+        
         self.host = host
         self.access_token = token
 
