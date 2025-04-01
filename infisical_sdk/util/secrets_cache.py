@@ -29,8 +29,6 @@ class SecretsCache:
       sorted_kwargs = sorted(kwargs.items())
       json_str = json.dumps(sorted_kwargs)
 
-      print(f"Cache key: {operation_name}:{json_str}")
-
       return sha256(f"{operation_name}:{json_str}".encode()).hexdigest()
   
     def get(self, cache_key: str) -> Any:
@@ -41,14 +39,11 @@ class SecretsCache:
           if cache_key in self.cache:
               serialized_value, timestamp = self.cache[cache_key]
               if time.time() - timestamp <= self.ttl:
-                  print(f"Cache hit: {cache_key}")
                   return pickle.loads(serialized_value)
               else:
-                  print(f"Cache miss (expired): {cache_key}")
                   del self.cache[cache_key]
                   return None
           else:
-              print(f"Cache miss (not in cache): {cache_key}")
               return None
             
             
