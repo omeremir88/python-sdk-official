@@ -56,7 +56,7 @@ The `InfisicalSDKClient` takes the following parameters, which are used a global
 ```python
 client = InfisicalSDKClient(
   host="https://app.infisical.com", # Defaults to https://app.infisical.com
-  token="<optional-auth-token>" # If not set, use the client.auth() methods.
+  token="<optional-auth-token>", # If not set, use the client.auth() methods.
   cache_ttl = 300 # `None` to disable caching
 )
 ```
