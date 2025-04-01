@@ -41,7 +41,7 @@ class SecretsCache:
               if time.time() - timestamp <= self.ttl:
                   return pickle.loads(serialized_value)
               else:
-                  del self.cache[cache_key]
+                  self.cache.pop(cache_key, None)
                   return None
           else:
               return None
@@ -60,7 +60,7 @@ class SecretsCache:
         return
 
       with self.lock:
-        del self.cache[cache_key]
+        self.cache.pop(cache_key, None)
 
 
     def _cleanup_expired_items(self) -> None:
@@ -72,7 +72,7 @@ class SecretsCache:
               if current_time - timestamp > self.ttl
           ]
           for key in expired_keys:
-              del self.cache[key]
+              self.cache.pop(key, None)
   
     def _cleanup_worker(self) -> None:
       """Background worker that periodically cleans up expired items."""
