@@ -37,7 +37,7 @@ class V3RawSecrets:
             params["tagSlugs"] = ",".join(tag_filters)
 
         
-        cache_key = self.cache.compute_cache_key("list_secrets", **params)
+        cache_key = self.cache.compute_cache_key(CACHE_KEY_LIST_SECRETS, **params)
         if self.cache.enabled:
           cached_response = self.cache.get(cache_key)
 
@@ -76,7 +76,14 @@ class V3RawSecrets:
           "version": version
         }
 
-        cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **params)
+        cache_params = {
+           "project_id": project_id,
+           "environment_slug": environment_slug,
+           "secret_path": secret_path,
+           "secret_name": secret_name,
+        }
+
+        cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **cache_params)
 
         if self.cache.enabled:
           cached_response = self.cache.get(cache_key)
@@ -125,6 +132,18 @@ class V3RawSecrets:
             model=SingleSecretResponse
         )
 
+
+        if self.cache.enabled:
+          cache_params = {
+            "project_id": project_id,
+            "environment_slug": environment_slug,
+            "secret_path": secret_path,
+            "secret_name": secret_name,
+          }
+
+          cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **cache_params)
+          self.cache.set(cache_key, result.data.secret)
+
         return result.data.secret
 
     def update_secret_by_name(
@@ -160,6 +179,18 @@ class V3RawSecrets:
             model=SingleSecretResponse
         )
 
+        if self.cache.enabled:
+           cache_params = {
+            "project_id": project_id,
+            "environment_slug": environment_slug,
+            "secret_path": secret_path,
+            "secret_name": current_secret_name,
+           }
+
+           cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **cache_params)
+           self.cache.unset(cache_key)
+           
+
         return result.data.secret
 
     def delete_secret_by_name(
@@ -181,5 +212,16 @@ class V3RawSecrets:
             json=requestBody,
             model=SingleSecretResponse
         )
+
+        if self.cache.enabled:
+          cache_params = {
+            "project_id": project_id,
+            "environment_slug": environment_slug,
+            "secret_path": secret_path,
+            "secret_name": secret_name,
+          }
+
+          cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **cache_params)
+          self.cache.unset(cache_key)
 
         return result.data.secret
