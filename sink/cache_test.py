@@ -1,12 +1,28 @@
 from infisical_sdk import InfisicalSDKClient
 import time
+import os
 
-SECRETS_PROJECT_ID = "8770e386-6392-4bfa-a377-a1e2d981668a"
-SECRETS_ENVIRONMENT_SLUG = "dev"
 
-MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID = "<client-id>"
-MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET = "<client-secret>"
-SITE_URL = "http://localhost:8080"
+def loadEnvVarsFromFileIntoEnv():
+  d = dict()
+  with open("./.env", "r") as fp:
+      for line in fp:
+          line = line.strip()
+          if line and not line.startswith("#"):
+            line = line.split("=", 1)
+            d[line[0]] = line[1]
+
+  for key, value in d.items():
+    os.environ[key] = value
+
+loadEnvVarsFromFileIntoEnv()
+
+SECRETS_PROJECT_ID = os.getenv("SECRETS_PROJECT_ID")
+SECRETS_ENVIRONMENT_SLUG = os.getenv("SECRETS_ENVIRONMENT_SLUG")
+
+MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID = os.getenv("MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID")
+MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET = os.getenv("MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET")
+SITE_URL = os.getenv("SITE_URL")
 
 cache_disabled_client = InfisicalSDKClient(host=SITE_URL, cache_ttl=None)
 cache_disabled_client.auth.universal_auth.login(MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID, MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET)

@@ -2,18 +2,36 @@ from infisical_sdk import InfisicalSDKClient, SymmetricEncryption
 
 import random
 import base64
+import os
 import string
 
-sdkInstance = InfisicalSDKClient(host="http://localhost:8080")
+def loadEnvVarsFromFileIntoEnv():
+  d = dict()
+  with open("./.env", "r") as fp:
+      for line in fp:
+          line = line.strip()
+          if line and not line.startswith("#"):
+            line = line.split("=", 1)
+            d[line[0]] = line[1]
 
-MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID = "<client-id>"
-MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET = "<client-secret>"
+  for key, value in d.items():
+    os.environ[key] = value
+
+loadEnvVarsFromFileIntoEnv()
+
+sdkInstance = InfisicalSDKClient(host=os.getenv("SITE_URL"))
+
+
+SECRETS_PROJECT_ID = os.getenv("SECRETS_PROJECT_ID")
+KMS_PROJECT_ID = os.getenv("KMS_PROJECT_ID")
+SECRETS_ENVIRONMENT_SLUG = os.getenv("SECRETS_ENVIRONMENT_SLUG")
+
+MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID = os.getenv("MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID")
+MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET = os.getenv("MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET")
+SITE_URL = os.getenv("SITE_URL")
+
 
 sdkInstance.auth.universal_auth.login(MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_ID, MACHINE_IDENTITY_UNIVERSAL_AUTH_CLIENT_SECRET)
-
-SECRETS_PROJECT_ID = "8770e386-6392-4bfa-a377-a1e2d981668a"
-SECRETS_ENVIRONMENT_SLUG = "staging"
-KMS_PROJECT_ID = "c54edf7a-f861-4131-afdc-b0ad5faec5dc"
 
 
 def random_string(length: int = 10) -> str:
@@ -75,6 +93,8 @@ all_secrets = sdkInstance.secrets.list_secrets(
     include_imports=True
 )
 
+
+all_secrets.secrets = [secret for secret in all_secrets.secrets if secret.secretKey != "TEST"]
 if len(all_secrets.secrets) != 1:
     raise Exception("Expected 1 secret, got {}".format(len(all_secrets.secrets)))
 
