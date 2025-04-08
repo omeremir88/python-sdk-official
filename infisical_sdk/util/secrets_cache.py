@@ -7,6 +7,8 @@ import threading
 from hashlib import sha256
 import pickle
 
+MAX_CACHE_SIZE = 1000
+
 class SecretsCache:
     def __init__(self, ttl_seconds: int = 300) -> None:
       if ttl_seconds is None or ttl_seconds <= 0:
@@ -29,7 +31,7 @@ class SecretsCache:
       sorted_kwargs = sorted(kwargs.items())
       json_str = json.dumps(sorted_kwargs)
 
-      return sha256(f"{operation_name}:{json_str}".encode()).hexdigest()
+      return f"{operation_name}-{sha256(json_str.encode()).hexdigest()}"
   
     def get(self, cache_key: str) -> Any:
       if not self.enabled:
@@ -55,12 +57,27 @@ class SecretsCache:
         serialized_value = pickle.dumps(value)
         self.cache[cache_key] = (serialized_value, time.time())
 
+        if len(self.cache) > MAX_CACHE_SIZE:
+          oldest_key = min(self.cache.keys(), key=lambda k: self.cache[k][1]) # oldest key based on timestamp
+          self.cache.pop(oldest_key)
+
+
+
     def unset(self, cache_key: str) -> None:
       if not self.enabled:
         return
 
       with self.lock:
         self.cache.pop(cache_key, None)
+
+    def invalidate_operation(self, operation_name: str) -> None:
+      if not self.enabled:
+        return
+
+      with self.lock:
+        for key in list(self.cache.keys()):
+          if key.startswith(operation_name):
+            self.cache.pop(key, None)
 
 
     def _cleanup_expired_items(self) -> None:
