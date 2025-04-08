@@ -144,6 +144,9 @@ class V3RawSecrets:
           cache_key = self.cache.compute_cache_key(CACHE_KEY_SINGLE_SECRET, **cache_params)
           self.cache.set(cache_key, result.data.secret)
 
+          # Invalidates all list secret cache
+          self.cache.invalidate_operation(CACHE_KEY_LIST_SECRETS)
+
         return result.data.secret
 
     def update_secret_by_name(
