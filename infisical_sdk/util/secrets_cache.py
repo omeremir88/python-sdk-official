@@ -10,7 +10,7 @@ import pickle
 MAX_CACHE_SIZE = 1000
 
 class SecretsCache:
-    def __init__(self, ttl_seconds: int = 300) -> None:
+    def __init__(self, ttl_seconds: int = 60) -> None:
       if ttl_seconds is None or ttl_seconds <= 0:
           self.enabled = False
           return
