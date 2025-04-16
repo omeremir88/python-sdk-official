@@ -4,6 +4,7 @@ import requests
 import functools
 from dataclasses import dataclass
 import time
+import random
 
 T = TypeVar("T")
 
@@ -88,15 +89,13 @@ def with_retry(
                 except tuple(network_errors) as error:
                     retry_count += 1
                     if retry_count > max_retries:
-                        print(f"Max retries ({max_retries}) exceeded. Giving up.")
                         raise
                     
-                    delay = base_delay * (2 ** (retry_count - 1))
+                    base_delay_with_backoff = base_delay * (2 ** (retry_count - 1))
                     
-                    print(
-                        f"Network error {error.__class__.__name__}: {str(error)}. "
-                        f"Retrying in {delay:.2f}s (attempt {retry_count}/{max_retries})"
-                    )
+                    # +/-20% jitter
+                    jitter = random.uniform(-0.2, 0.2) * base_delay_with_backoff
+                    delay = base_delay_with_backoff + jitter
                     
                     time.sleep(delay)
         
